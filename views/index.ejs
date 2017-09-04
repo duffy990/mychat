@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+  <style type="text/css">
+    .mark{
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,.5);
+      position: fixed;
+      left: 0;
+      top: 0;
+    }
+    .alert{
+      width: 90%;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform:translate3d(-50%,-50%,0);
+      background: #f4f4f4;
+      text-align: center;
+      padding: 15px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+    
+    .alert input{
+      margin: 0px auto;
+      border: none;
+      outline: none;
+      width: 80%;
+      line-height: 30px;
+      padding-left: 5px;
+
+    }
+    .alert .ok{
+      padding: 5px 8px;
+      text-align: center;
+      background: orange;
+      color: white;
+      display: inline-block;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .bot{
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      border-top: 1px solid #ccc;
+      overflow: hidden;
+      width: 100%;
+    }
+    .bot input{
+      width: 70%;
+      line-height: 30px;
+      float: left;
+      border: none;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      padding-left: 8px;
+    }
+    .bot button{
+      float: left;
+      width: 30%;
+      line-height: 30px;
+      background: orange;
+      color: white;
+      border: none;
+    }
+    *{
+      padding: 0;
+      margin: 0;
+    }
+    ul{
+      list-style: none;
+      padding: 8px;
+    }
+    .chatBoy li{
+      font-size: 14px;
+      padding: 5px;
+    }
+    .tt{
+      padding: 8px;
+    }
+    .come{
+      text-align: center;
+      height: 100px;
+      overflow-y: auto;
+    }
+    .come .inner{
+      line-height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- <div class="mark">
+      <div class="alert">
+          <input type="text" placeholder='请输入你的名字' id='myname'>
+          <div class="ok">写好了</div>
+      </div>
+  </div> -->
+  <!-- <h5><%= title%></h5> -->
+  <div class="tt">
+      欢迎你，<span class='myuser'><%= user%></span>
+  </div>
+  <div class="come">
+      <div class="inner">
+        
+      </div>
+  </div>
+  <ul class='chatBoy'>
+  </ul>
+  <div class="bot">
+    <input type="text" id='mymsg'>
+   <button type='button' id='btn'>发送</button>
+  </div>
+  <p id='fuwu'></p>
+  <script type="text/javascript" src='js/jquery-3.2.1.min.js'></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript">
+    $(function(){
+      var socket = io();
+      $('#mymsg').focus(function(){
+        setTimeout(function(){  
+          document.body.scrollTop = document.body.scrollHeight;  
+        },300);  
+      })
+      //点击按钮之后，发出提问
+      document.getElementById("btn").onclick = function(){
+        var val = $('#mymsg').val()
+        console.log(val)
+        var myuser = $('.myuser').html()
+        socket.emit("tiwen",{
+          'says':val,
+          'people':myuser
+        });
+      }
+      socket.on("huida",function(msg){
+        console.log(msg);
+        $('.chatBoy').prepend("<li><b>" + msg.people + "：</b>"+ msg.says + "</li>");
+      });
+      // 我上线了
+      socket.emit("comein",{
+        'user': $('.myuser').html()
+      });
+      socket.on('conminBack', function (msg) {
+        console.log(msg);
+        console.log($(".come .inner").height())
+        // 当前长度
+        $('.come .inner').append("<div><span style='color:orange'>" + msg + "</span>上线了</div>")
+        var H = $(".come .inner").height()
+        $(".come").scrollTop(H)
+      })
+      
+      $('.alert .ok').click(function(event) {
+        var a = $('#myname').val()
+        if (a != "") {
+          $.ajax({
+            url: '/checkName',
+            type: 'POST',
+            dataType: 'json',
+            data: {name: a},
+          })
+          .done(function() {
+            console.log("success");
+          })
+          .fail(function() {
+            console.log("error");
+          })
+          .always(function() {
+            console.log("complete");
+          });
+          
+          $('.mark').hide()
+        } else {
+          alert('不能为空！！')
+        }
+      });
+
+      // 用户离开页面
+  //    $(window).unbind('beforeunload');
+  // 　　window.onbeforeunload = null;
+    })
+ 
+  </script>
+</body>
+</html>
